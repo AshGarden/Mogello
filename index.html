@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Kufam:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style src="reset.css"></style>
+    <title>To Do List</title>
+    <style>
+        body{
+            font-family: 'Kufam', 'Noto Sans JP', sans-serif;
+        }
+        #board {
+            display: flex;
+            justify-content: space-around;
+        }
+        .list {
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .list-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .list-cards {
+            display: flex;
+            flex-direction: column;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        .card {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #board {
+            position: relative;
+        }
+        .btn.btn-gradient {
+            background: none;
+            border: none;
+            padding: 1em;
+            font: inherit;
+            cursor: pointer;
+            outline: inherit;
+            -webkit-transform: skew(-15deg);
+            transform: skew(-15deg);
+            color: #fff;
+            border-radius: 0;
+            background-image: -webkit-gradient(linear, left top, right top, from(#2af598), to(#009efd));
+            background-image: -webkit-linear-gradient(left, #2af598 0%, #009efd 100%);
+            background-image: linear-gradient(90deg, #2af598 0%, #009efd 100%);
+            -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+        }
+    </style>
+</head>
+<body>
+    <div id="board">
+        <div class="list">
+            <h2 class="list-title">To Do</h2>
+            <div class="list-cards" id="todo"></div>
+            <span class="icon">＋</span>
+            <input class="new-card" type="text" id="newTaskTodo" name="newTaskTodo" placeholder="New task..." />
+        </div>
+        <div class="list">
+            <h2 class="list-title">Doing</h2>
+            <div class="list-cards" id="doing"></div>
+            <span class="icon">＋</span>
+            <input class="new-card" type="text" id="newTaskDoing" name="newTaskDoing" placeholder="New task..." />
+        </div>
+        <div class="list">
+            <h2 class="list-title">Done</h2>
+            <div class="list-cards" id="done"></div>
+            <span class="icon">＋</span>
+            <input class="new-card" type="text" id="newTaskDone" name="newTaskDone" placeholder="New task..." />
+        </div>
+    </div>
+    <button class="btn btn-gradient">Insert New List Object...</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.10.2/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script>
+        function createList(title) {
+            var list = document.createElement('div');
+            list.className = 'list';
+
+            var titleElement = document.createElement('h2');
+            titleElement.className = 'list-title';
+            titleElement.textContent = title;
+            list.appendChild(titleElement);
+
+            var cards = document.createElement('div');
+            cards.className = 'list-cards';
+            list.appendChild(cards);
+
+            var input = document.createElement('input');
+            input.className = 'new-card';
+            input.type = 'text';
+            input.placeholder = 'New task...';
+            input.autocomplete = 'off';
+            list.appendChild(input);
+
+            return list;
+        }
+
+        function makeSortable(list) {
+            new Sortable(list, {
+                group: 'shared',
+                animation: 150,
+                chosenClass: "selected",
+                dragClass: "drag",
+                onEnd: function (evt) {
+                    var itemEl = evt.item;
+                    evt.to.appendChild(itemEl);
+                }
+            });
+        }
+
+        document.querySelectorAll('.list').forEach(makeSortable);
+
+        document.addEventListener('keypress', function(e) {
+            if (e.target.matches('.new-card')) {
+                var key = e.which || e.keyCode;
+                if (key === 13) { // 13 is enter
+                    var card = document.createElement('div');
+                    card.textContent = e.target.value;
+                    card.className = 'card';
+
+                    // タスクを削除するためのボタンを追加
+                    var deleteButton = document.createElement('button');
+                    deleteButton.textContent = '-';
+                    deleteButton.addEventListener('click', function() {
+                        card.remove();
+                    });
+                    card.appendChild(deleteButton);
+
+                    e.target.parentElement.querySelector('.list-cards').appendChild(card);
+                    e.target.value = '';
+                }
+            }
+        });
+
+        var button = document.querySelector('.btn.btn-gradient');
+        button.addEventListener('click', function() {
+            var title = prompt('Enter the title of the new list:');
+            if (title) {
+                var list = createList(title);
+                document.getElementById('board').appendChild(list);
+                makeSortable(list.querySelector('.list-cards'));
+            }
+        });
+
+        var style = document.createElement('style');
+        style.textContent = `
+        .btn.btn-gradient {
+            position: absolute;
+            bottom: 1em;
+            right: 1em;
+        `;
+        document.head.appendChild(style);
+
+        document.addEventListener('keypress', function(e) {
+            if (e.target.matches('.new-card')) {
+                var key = e.which || e.keyCode;
+                if (key === 13) { // 13 is enter
+                    var card = document.createElement('div');
+                    card.textContent = e.target.value;
+                    card.className = 'card';
+                    e.target.parentElement.querySelector('.list-cards').appendChild(card);
+                    e.target.value = '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
